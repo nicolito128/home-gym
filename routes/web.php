@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\WorkoutPlanController;
+use App\Http\Controllers\ExerciseController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\CalendarController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,9 +19,19 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/me', function () {
-        return view('me');
-    })->name('me');
+    Route::get('/me', [WorkoutPlanController::class, 'index'])->name('me');
+
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+
+    // Workout plans
+    Route::post('/plans', [WorkoutPlanController::class, 'store'])->name('plans.store');
+    Route::get('/plans/{workout_plan}', [WorkoutPlanController::class, 'show'])->name('plans.show');
+
+    // Exercises
+    Route::post('/plans/{workout_plan}/exercises', [ExerciseController::class, 'store'])->name('exercises.store');
+
+    // Schedules / calendar assignments
+    Route::post('/exercises/{exercise}/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
