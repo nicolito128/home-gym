@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (will be installed in container)
+vendor/
+node_modules/
+
+# Environment
+.env
+.env.*
+.env.*.php
+.env.*.local
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Laravel specific
+bootstrap/cache/*.php
+storage/logs/*
+storage/app/private/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+
+# Build artifacts
+public/build/
+public/hot
+dist/
+
+# Testing
+coverage/
+.phpunit.result.cache
+
+# Local development
+Dockerfile.dev
+docker-compose.override.yml
+.container/
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Documentation
+BUILD.md
+IDE.md
+README.md
+
+# Node package lock must stay in the build context for npm ci
+npm-shrinkwrap.json
