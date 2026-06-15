@@ -43,7 +43,7 @@
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-sm text-stone-500">Sin asignaciones</p>
+                        <p class="text-sm text-stone-500 no-assignments">Sin asignaciones</p>
                     @endif
                 </div>
             @endfor
@@ -92,6 +92,10 @@
                         const s = data.schedule;
 
                         // append to the day list
+                        // remove "Sin asignaciones" placeholder if present
+                        const placeholder = day.querySelector('.no-assignments');
+                        if (placeholder) placeholder.remove();
+
                         let ul = day.querySelector('ul');
                         if (!ul) {
                             ul = document.createElement('ul');
