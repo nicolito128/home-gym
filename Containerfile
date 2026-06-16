@@ -27,6 +27,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --silent
 
 COPY . .
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev || true
+RUN php artisan package:discover --ansi || true
 RUN npm run build
 
 FROM php:8.4-cli-alpine AS runtime
@@ -43,8 +45,8 @@ RUN apk add --no-cache \
 WORKDIR /var/www/html
 COPY --from=build /var/www/html /var/www/html
 
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-  && chown -R www-data:www-data /var/www/html
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 0777 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
