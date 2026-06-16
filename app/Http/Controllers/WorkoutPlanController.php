@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkoutPlan;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class WorkoutPlanController extends Controller
 {
@@ -16,15 +19,23 @@ class WorkoutPlanController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('workout_plans')->where('owner_id', $request->user()->id)],
         ]);
 
-        $plan = WorkoutPlan::create([
-            'owner_id' => $request->user()->id,
-            'name' => $data['name'],
-        ]);
+        try {
+            $plan = DB::transaction(function () use ($request, $data) {
+                return WorkoutPlan::firstOrCreate([
+                    'owner_id' => $request->user()->id,
+                    'name' => $data['name'],
+                ]);
+            });
+        } catch (QueryException $exception) {
+            return redirect()->back()->withInput()->withErrors(['name' => 'No se pudo crear el plan.'])->with('status', 'Error al crear el plan');
+        }
 
-        return redirect()->route('me')->with('status', 'Plan creado');
+        $status = $plan->wasRecentlyCreated ? 'Plan creado' : 'El plan ya existe';
+
+        return redirect()->route('me')->with('status', $status);
     }
 
     public function show(Request $request, WorkoutPlan $workout_plan)

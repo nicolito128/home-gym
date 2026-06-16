@@ -41,10 +41,10 @@
 						<input id="password" name="password" type="password" required class="w-full rounded-2xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-none transition focus:border-amber-300" placeholder="********">
 					</div>
 
-					<label class="flex items-center gap-3 text-sm text-stone-300">
+					<!--<label class="flex items-center gap-3 text-sm text-stone-300">
 						<input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-stone-600 bg-stone-950 text-amber-300 focus:ring-amber-300">
 						Mantener sesion iniciada
-					</label>
+					</label>-->
 
 					<button type="submit" class="w-full rounded-2xl bg-amber-300 px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-stone-950 transition hover:bg-amber-200">Entrar</button>
 				</form>

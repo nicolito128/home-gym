@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario | {{ config('app.name', '/HOME/GYM') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-stone-950 text-stone-100">
@@ -25,9 +26,7 @@
             </div>
         </section>
 
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <div class="grid grid-cols-7 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             @php $days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']; @endphp
             @for($i = 0; $i < 7; $i++)
                 <div class="rounded border border-stone-800 p-4" data-day="{{ $i }}">
@@ -51,31 +50,43 @@
 
         <script>
             (function(){
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
                 document.querySelectorAll('[draggable="true"]').forEach(item => {
                     item.addEventListener('dragstart', (e) => {
+                        if (!e.dataTransfer) return;
+                        e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('text/plain', item.dataset.exerciseId);
                     });
                 });
 
                 document.querySelectorAll('[data-day]').forEach(day => {
-                    day.addEventListener('dragover', (e) => e.preventDefault());
+                    day.addEventListener('dragenter', (e) => e.preventDefault());
+                    day.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+                    });
                     day.addEventListener('drop', async (e) => {
                         e.preventDefault();
-                        const exerciseId = e.dataTransfer.getData('text/plain');
-                        const dayOfWeek = day.dataset.day;
 
+                        const exerciseId = e.dataTransfer?.getData('text/plain') || '';
+                        if (!exerciseId) {
+                            alert('No se pudo obtener el ejercicio. Intenta nuevamente.');
+                            return;
+                        }
+
+                        const dayOfWeek = day.dataset.day;
                         const startAt = prompt('Hora de inicio (HH:MM)', '07:00');
                         if (!startAt) return;
-                        const repetitions = prompt('Repeticiones (número)', '3') || 1;
-                        const breaks = prompt('Descansos en segundos', '60') || 0;
+
+                        const repetitions = prompt('Repeticiones (número)', '3');
+                        const breaks = prompt('Descansos en segundos', '60');
 
                         const form = new FormData();
                         form.append('day_of_week', dayOfWeek);
                         form.append('start_at', startAt);
-                        form.append('repetitions', repetitions);
-                        form.append('breaks', breaks);
+                        if (repetitions !== null) form.append('repetitions', repetitions);
+                        if (breaks !== null) form.append('breaks', breaks);
 
                         const res = await fetch(`/exercises/${exerciseId}/schedules`, {
                             method: 'POST',
@@ -86,13 +97,16 @@
                             body: form
                         });
 
-                        if (!res.ok) { alert('Error al asignar horario'); return; }
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            console.error('Drag-and-drop schedule error:', res.status, errorText);
+                            alert('Error al asignar horario');
+                            return;
+                        }
 
                         const data = await res.json();
                         const s = data.schedule;
 
-                        // append to the day list
-                        // remove "Sin asignaciones" placeholder if present
                         const placeholder = day.querySelector('.no-assignments');
                         if (placeholder) placeholder.remove();
 

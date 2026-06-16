@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('exercise_id')->constrained('exercises');
             $table->smallInteger('day_of_week');
-            $table->time('start_at')->unique()->useCurrent();
+            $table->time('start_at')->useCurrent();
+            $table->unique(['exercise_id', 'day_of_week', 'start_at'], 'schedules_exercise_day_start_unique');
             $table->integer('repetitions')->default(1);
             $table->integer('breaks')->default(0);
         });
