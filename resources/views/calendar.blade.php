@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body class="min-h-screen bg-stone-950 text-stone-100">
     <main class="mx-auto max-w-6xl px-6 py-10">
         <header class="mb-6 flex items-center justify-between">
@@ -17,8 +19,9 @@
         <section class="mb-6">
             <h2 class="mb-3 font-semibold">Ejercicios (arrastra al día)</h2>
             <div class="flex flex-wrap gap-3">
-                @foreach($exercises as $ex)
-                    <div draggable="true" data-exercise-id="{{ $ex->id }}" class="cursor-grab rounded border border-stone-700 px-3 py-2 bg-stone-900/40">
+                @foreach ($exercises as $ex)
+                    <div draggable="true" data-exercise-id="{{ $ex->id }}"
+                        class="cursor-grab rounded border border-stone-700 px-3 py-2 bg-stone-900/40">
                         <strong class="block">{{ $ex->name }}</strong>
                         <small class="text-stone-400">{{ $ex->muscle_group }}</small>
                     </div>
@@ -28,16 +31,32 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             @php $days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']; @endphp
-            @for($i = 0; $i < 7; $i++)
+            @for ($i = 0; $i < 7; $i++)
                 <div class="rounded border border-stone-800 p-4" data-day="{{ $i }}">
                     <h2 class="mb-3 font-semibold">{{ $days[$i] }}</h2>
 
-                    @if(isset($grouped[$i]) && $grouped[$i]->count())
+                    @if (isset($grouped[$i]) && $grouped[$i]->count())
                         <ul class="space-y-2 text-sm">
-                            @foreach($grouped[$i] as $s)
+                            @foreach ($grouped[$i] as $s)
                                 <li class="rounded bg-stone-900/40 p-2">
-                                    <div class="font-medium">{{ \Carbon\Carbon::parse($s->start_at)->format('H:i') }} — {{ $s->exercise->name }}</div>
-                                    <div class="text-stone-400 text-xs">Plan: {{ $s->exercise->workoutPlan->name }} · x{{ $s->repetitions }} · descanso {{ $s->breaks }}s</div>
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div class="font-medium">
+                                                {{ \Carbon\Carbon::parse($s->start_at)->format('H:i') }} —
+                                                {{ $s->exercise->name }}</div>
+                                            <div class="text-stone-400 text-xs">Plan:
+                                                {{ $s->exercise->workoutPlan->name }} · x{{ $s->repetitions }} ·
+                                                descanso {{ $s->breaks }}s</div>
+                                        </div>
+                                        <form action="{{ route('schedules.destroy', ['schedule' => $s->id]) }}"
+                                            method="POST" class="inline-flex">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                onclick="return confirm('¿Eliminar esta asignación del calendario?')"
+                                                class="rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white transition hover:bg-red-500">X</button>
+                                        </form>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>
@@ -49,7 +68,7 @@
         </div>
 
         <script>
-            (function(){
+            (function() {
                 const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
                 document.querySelectorAll('[draggable="true"]').forEach(item => {
@@ -119,7 +138,8 @@
 
                         const li = document.createElement('li');
                         li.className = 'rounded bg-stone-900/40 p-2';
-                        li.innerHTML = `<div class="font-medium">${s.start_at} — ${s.exercise.name}</div><div class="text-stone-400 text-xs">Plan: ${s.exercise.workout_plan.name} · x${s.repetitions} · descanso ${s.breaks}s</div>`;
+                        li.innerHTML =
+                            `<div class="font-medium">${s.start_at} — ${s.exercise.name}</div><div class="text-stone-400 text-xs">Plan: ${s.exercise.workout_plan.name} · x${s.repetitions} · descanso ${s.breaks}s</div>`;
                         ul.appendChild(li);
                     });
                 });
@@ -127,4 +147,5 @@
         </script>
     </main>
 </body>
+
 </html>

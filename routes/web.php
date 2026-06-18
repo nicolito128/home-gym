@@ -29,9 +29,12 @@ Route::middleware('auth')->group(function (): void {
 
     // Exercises
     Route::post('/plans/{workout_plan}/exercises', [ExerciseController::class, 'store'])->name('exercises.store');
+    Route::delete('/exercises/{exercise}', [ExerciseController::class, 'destroy'])->name('exercises.destroy');
 
     // Schedules / calendar assignments
     Route::post('/exercises/{exercise}/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+    Route::delete('/exercises/{exercise}/schedules', [ScheduleController::class, 'destroyByExercise'])->name('schedules.destroyByExercise');
+    Route::delete('/schedules/{schedule}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

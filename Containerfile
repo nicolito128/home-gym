@@ -23,8 +23,8 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock artisan ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
-COPY package.json package-lock.json ./
-RUN npm ci --silent
+COPY package*.json ./
+RUN npm install
 
 COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative --no-dev || true

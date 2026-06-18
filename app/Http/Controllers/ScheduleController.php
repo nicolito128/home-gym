@@ -28,20 +28,6 @@ class ScheduleController extends Controller
             'breaks' => 'nullable|integer|min:0',
         ]);
 
-        // Defensive check: some DB schemas have a global unique on `start_at`
-        // which would cause a DB-level constraint error. Check early and
-        // return a readable JSON error to the frontend to avoid 500s.
-        if (Schedule::where('start_at', $data['start_at'])->exists()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Ya existe un horario con esa hora.',
-                ], 422);
-            }
-
-            return redirect()->back()->withInput()->withErrors(['start_at' => 'Ya existe un horario con esa hora.'])->with('status', 'Error al asignar el horario');
-        }
-
         try {
             $schedule = DB::transaction(function () use ($exercise, $data) {
                 return Schedule::firstOrCreate(
@@ -72,5 +58,31 @@ class ScheduleController extends Controller
 
         $status = $schedule->wasRecentlyCreated ? 'Horario asignado' : 'El horario ya existe';
         return redirect()->back()->with('status', $status);
+    }
+
+    public function destroy(Request $request, Schedule $schedule)
+    {
+        if ($schedule->exercise->workoutPlan->owner_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $schedule->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'ok']);
+        }
+
+        return redirect()->back()->with('status', 'Asignación eliminada');
+    }
+
+    public function destroyByExercise(Request $request, Exercise $exercise)
+    {
+        if ($exercise->workoutPlan->owner_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $deleted = $exercise->schedules()->delete();
+
+        return redirect()->back()->with('status', $deleted ? 'Horarios removidos del calendario' : 'No había horarios para eliminar');
     }
 }

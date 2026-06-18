@@ -39,4 +39,22 @@ class ExerciseController extends Controller
 
         return redirect()->back()->with('status', $status);
     }
+
+    public function destroy(Request $request, Exercise $exercise)
+    {
+        if ($exercise->workoutPlan->owner_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        try {
+            DB::transaction(function () use ($exercise) {
+                $exercise->schedules()->delete();
+                $exercise->delete();
+            });
+        } catch (QueryException $exception) {
+            return redirect()->back()->with('status', 'Error al eliminar el ejercicio');
+        }
+
+        return redirect()->back()->with('status', 'Ejercicio eliminado');
+    }
 }

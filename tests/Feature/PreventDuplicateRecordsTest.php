@@ -58,3 +58,23 @@ it('does not create duplicate schedules for the same exercise, day and time', fu
     $this->assertDatabaseCount('schedules', 1);
     $this->assertDatabaseHas('schedules', ['exercise_id' => $exercise->id, 'day_of_week' => 1, 'start_at' => '08:00']);
 });
+
+it('allows multiple exercises on the same day with different start times', function () {
+    $plan = WorkoutPlan::create(['owner_id' => $this->user->id, 'name' => 'Plan de prueba']);
+    $exerciseA = Exercise::create(['workout_plan_id' => $plan->id, 'name' => 'Sentadillas']);
+    $exerciseB = Exercise::create(['workout_plan_id' => $plan->id, 'name' => 'Press de banca']);
+
+    $this->post(route('schedules.store', ['exercise' => $exerciseA->id]), [
+        'day_of_week' => 1,
+        'start_at' => '08:00',
+    ]);
+
+    $this->post(route('schedules.store', ['exercise' => $exerciseB->id]), [
+        'day_of_week' => 1,
+        'start_at' => '09:00',
+    ]);
+
+    $this->assertDatabaseCount('schedules', 2);
+    $this->assertDatabaseHas('schedules', ['exercise_id' => $exerciseA->id, 'day_of_week' => 1, 'start_at' => '08:00']);
+    $this->assertDatabaseHas('schedules', ['exercise_id' => $exerciseB->id, 'day_of_week' => 1, 'start_at' => '09:00']);
+});
